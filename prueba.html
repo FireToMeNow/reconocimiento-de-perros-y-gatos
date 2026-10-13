@@ -4,7 +4,7 @@
 <body><h2>Prueba del modelo con fotos del dataset</h2><div id="estado">Cargando modelo...</div><div id="g"></div>
 <script>
 (async()=>{
-  const modelo=await tf.loadLayersModel("model.json");
+  const modelo=await tf.loadLayersModel("./model.json");
   document.getElementById("estado").textContent="Modelo cargado";
   const nombres=(await (await fetch("muestras/lista.txt")).text()).trim().split("\n");
   let ok=0;
