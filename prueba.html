@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Prueba con fotos</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+<style>body{font-family:sans-serif}.c{display:inline-block;margin:8px;text-align:center}img{width:160px;height:160px;object-fit:cover}</style></head>
+<body><h2>Prueba del modelo con fotos del dataset</h2><div id="estado">Cargando modelo...</div><div id="g"></div>
+<script>
+(async()=>{
+  const modelo=await tf.loadLayersModel("model.json");
+  document.getElementById("estado").textContent="Modelo cargado";
+  const nombres=(await (await fetch("muestras/lista.txt")).text()).trim().split("\n");
+  let ok=0;
+  for(const n of nombres){
+    const img=new Image(); img.src="muestras/"+n; await img.decode();
+    const cv=document.createElement("canvas"); cv.width=100; cv.height=100;
+    const ctx=cv.getContext("2d"); ctx.drawImage(img,0,0,100,100);
+    const d=ctx.getImageData(0,0,100,100).data, arr=[];
+    for(let y=0;y<100;y++){const fila=[];for(let x=0;x<100;x++){const p=(y*100+x)*4;fila.push([(d[p]+d[p+1]+d[p+2])/3/255]);}arr.push(fila);}
+    const r=modelo.predict(tf.tensor4d([arr])).dataSync()[0];
+    const pred=r<=.5?"Gato":"Perro", real=n.includes("perro")?"Perro":"Gato"; if(pred==real) ok++;
+    document.getElementById("g").insertAdjacentHTML("beforeend",`<div class="c"><img src="muestras/${n}"><br>Real: ${real}<br><b style="color:${pred==real?'green':'red'}">Predicción: ${pred}</b> (${r.toFixed(2)})</div>`);
+  }
+  document.getElementById("estado").textContent=`Modelo cargado — aciertos: ${ok}/${nombres.length}`;
+})().catch(e=>{document.getElementById("estado").textContent="ERROR: "+e;});
+</script></body></html>
